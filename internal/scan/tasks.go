@@ -122,6 +122,10 @@ type authorCounts struct {
 	Authors   []authorBookCount `json:"authors"`
 }
 
+// EventLibraryID scopes authors_num_books_updated broadcasts to users who can
+// access the library.
+func (a authorCounts) EventLibraryID() string { return a.LibraryID }
+
 // finalize announces the book counts of the authors a scan touched and, when
 // sweep is set, removes the authors and series left without books.
 func (s *Scanner) finalize(ctx context.Context, libraryID string, t scanTally) {

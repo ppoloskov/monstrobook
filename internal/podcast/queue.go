@@ -374,6 +374,6 @@ func (h *Handler) clear(itemID string) {
 	before := len(h.queue)
 	h.queue = slices.DeleteFunc(h.queue, func(d *download) bool { return d.item.ID == itemID })
 	if len(h.queue) != before {
-		h.emit.ToAll("episode_download_queue_cleared", itemID)
+		h.emit.ToAdmins("episode_download_queue_cleared", itemID)
 	}
 }

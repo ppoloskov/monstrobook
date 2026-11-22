@@ -1,12 +1,29 @@
 # Monstrobook handover
 
-Updated 2026-11-20.
+Updated 2026-11-22.
 
-## Current state: 100% Oracle Parity Achieved — Gate 1 Pre-Release Hardening
+## Production telemetry, 2026-11-21
 
-Monstrobook (`cmd/monstrobook`, `module monstrobook`) is now at the repository root with pinned upstream TS v2.37.2 (`edb1f7ef`) pulled on demand into gitignored `.oracle-upstream/`, a reproducible Nix dev/CI flake (`flake.nix` + `flake.lock`), Docker images pulling `/app/client/dist` directly from `ghcr.io/advplyr/audiobookshelf:2.37.2`, and live OpenAPI 3.0.3 generation (`make openapi` → `docs/openapi.json`, 188 paths / 224/224 operations).
+- `media/abooks` in `au` was unavailable at 15:58 Brisbane: the configured
+  `monstrobook:sha-7246e26` image returned not found and the pod was in
+  `ImagePullBackOff`. No deployment action was taken; check current state before
+  intervening. The resource comparison and retention limitations are in
+  [docs/resource-comparison-2026-11-21.md](docs/resource-comparison-2026-11-21.md).
+- Follow-up: the GitOps source and fetched Flux OCI artifact now specify
+  `monstrobook:sha-4a193e2` (verified present for Linux AMD64 and ARM64).
+  `wave-apps` was still health-checking the previous revision with a 30-minute
+  timeout. A direct image update was rejected by automatic approval review;
+  no deployment mutation was made. Recheck Flux and deployment before action.
+- On 2026-11-22, Flux reported `wave-apps` Ready and Healthy at source commit
+  `fca722f6`; `media/abooks` was 1/1 available on `sha-4a193e2`, with its pod
+  Running and zero restarts after approximately 18 hours. The cluster API was
+  briefly unreachable during the check but subsequent reads succeeded.
 
-Waves P1–P5 closed **all 768** unexpected oracle findings (`768 → 0`), Wave S1 compressed `metadata`, `item`, `list`, and `logging` (`-273 prod LOC`, `-7 files`), and **Gate 1** (pre-release security & state-machine hardening) is complete and verified (`go test -race ./...`, `golangci-lint`: `0 issues`, `make verify`: `0 findings`). Active phase is **Gates 2–4 — Release Verification & Packaging (`v0.1.0`)** ([docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)).
+## Current state: 100% Oracle Parity Achieved — Gates 1–2 Complete
+
+Monstrobook (`cmd/monstrobook`, `module monstrobook`) is now at the repository root with pinned upstream TS v2.37.2 (`edb1f7ef`) pulled on demand into gitignored `.oracle-upstream/`, a reproducible Nix dev/CI flake (`flake.nix` + `flake.lock`), Docker images pulling `/app/client/dist` directly from `ghcr.io/advplyr/audiobookshelf:2.37.2` (plus an experimental upstream v3 React UI image workflow in `.github/workflows/docker-go-v3.yml` publishing `:v3`), a `v0.1.0` server version banner alongside Audiobookshelf `v2.37.2` compatibility (`9d5f4d34`), and live OpenAPI 3.0.3 generation (`make openapi` → `docs/openapi.json`, 188 paths / 224/224 operations).
+
+Waves P1–P5 closed **all 768** unexpected oracle findings (`768 → 0`), Wave S1 compressed `metadata`, `item`, `list`, and `logging` (`-273 prod LOC`, `-7 files`), **Gate 1** (pre-release security & state-machine hardening) and **Gate 2** (CI + multi-arch image + OpenAPI, `7246e26c`) are complete, and v2.38.0 authorization & Socket.IO broadcast scoping fixes (`CanListLibrary`, `notifications_updated`, `rss_feed_*`, `author_*`, `series_*`, `item_removed`, `episode_*`, `metadata_embed_queue_update`, `stream_reset`) are landed and verified (`go test ./... -count=1`). Active phase is **Gates 3–4 — Release Verification & Tagging (`v0.1.0`)** ([docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)).
 
 ### Latest Oracle Scorecard (2026-11-20, `54997df5`)
 - **Go Parity Backlog:** **`0` unexpected findings (`0` groups)** — `nix develop --command make verify` exits **`0`**

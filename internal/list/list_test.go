@@ -256,8 +256,8 @@ func TestCollectionDeleteClosesRSSFeed(t *testing.T) {
 		t.Error("feed rows remain")
 	}
 	ev := r.take()
-	if len(ev) != 2 || ev[0].event != "rss_feed_closed" || ev[1].event != "collection_removed" || ev[0].audience != events.AllUsers {
-		t.Errorf("events = %+v, want rss_feed_closed then collection_removed to all users", ev)
+	if len(ev) != 2 || ev[0].event != "rss_feed_closed" || ev[1].event != "collection_removed" || ev[0].audience != events.Admins {
+		t.Errorf("events = %+v, want rss_feed_closed to admins then collection_removed", ev)
 	}
 	if w := r.do("owner", "DELETE", "/api/collections/col", ""); w.Code != 404 || len(r.take()) != 0 {
 		t.Errorf("repeat delete = %d, want 404 and no events", w.Code)

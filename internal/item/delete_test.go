@@ -82,7 +82,7 @@ func TestDeleteItemCascadesToEverythingReferencingIt(t *testing.T) {
 		names = append(names, e.name)
 		audience[e.name] += e.audience + ","
 	}
-	if audience["item_removed"] != "*," || audience["rss_feed_closed"] != "*," {
+	if audience["item_removed"] != "*," || audience["rss_feed_closed"] != "@admins," {
 		t.Errorf("audiences = %v", audience)
 	}
 	// Playlist events are the list package's: item reports who lost what.

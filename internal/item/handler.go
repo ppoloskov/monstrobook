@@ -40,6 +40,10 @@ type EpisodeDownload struct {
 	GUID                any     `json:"guid"`
 }
 
+// EventLibraryID scopes episode_download_* broadcasts to users who can access
+// the podcast's library.
+func (e EpisodeDownload) EventLibraryID() string { return db.Val(e.LibraryID) }
+
 // DownloadQueue reports a podcast item's episode downloads: the ones queued
 // and the one running now when it belongs to the item.
 type DownloadQueue interface {

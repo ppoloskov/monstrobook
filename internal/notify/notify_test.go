@@ -12,6 +12,7 @@ import (
 	"monstrobook/internal/auth"
 	"monstrobook/internal/db"
 	"monstrobook/internal/db/dbtest"
+	"monstrobook/internal/events"
 	"monstrobook/internal/settings"
 )
 
@@ -40,8 +41,11 @@ func newEnv(t *testing.T, apprise string) *env {
 			t.Fatal(err)
 		}
 	}
-	e.h = New(store, func(_, event string, _ any) {
+	e.h = New(store, func(userID, event string, _ any) {
 		if event == "notifications_updated" {
+			if userID != events.Admins {
+				t.Errorf("notifications_updated audience = %q, want %q", userID, events.Admins)
+			}
 			e.updates++
 		}
 	})

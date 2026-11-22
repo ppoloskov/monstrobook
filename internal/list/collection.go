@@ -297,7 +297,7 @@ func (h *Handler) deleteCollection(w http.ResponseWriter, r *http.Request, user 
 			c := closedFeed{ID: feed.ID, EntityType: feed.EntityType, EntityID: feed.EntityID, FeedURL: feed.FeedURL}
 			c.Meta.Title, c.Meta.Description, c.Meta.PreventIndexing = feed.Title, feed.Description, bool(feed.PreventIndexing)
 			c.Meta.OwnerName, c.Meta.OwnerEmail = feed.OwnerName, feed.OwnerEmail
-			h.emit.ToAll("rss_feed_closed", c)
+			h.emit.ToAdmins("rss_feed_closed", c)
 		}
 	})
 }

@@ -137,10 +137,10 @@ func (h *Handler) register(d *download, path string) error {
 	if i < 0 {
 		return nil
 	}
-	h.emit.ToAll("episode_added", struct {
-		item.EpisodeExpanded
-		LibraryItem item.Expanded `json:"libraryItem"`
-	}{updated.Podcast.Episodes[i].Expanded(d.item.ID), view})
+	h.emit.ToAll("episode_added", episodeAddedEvent{
+		EpisodeExpanded: updated.Podcast.Episodes[i].Expanded(d.item.ID),
+		LibraryItem:     view,
+	})
 	if d.auto { // PodcastManager.js:257: notifications only for auto downloaded episodes
 		h.notifyEpisodeDownloaded(updated, updated.Podcast.Episodes[i])
 	}
@@ -152,6 +152,15 @@ func (h *Handler) recount(ctx context.Context, podcastID string, now db.Time) er
 	_, err := h.db.Exec(ctx, `UPDATE podcasts SET numEpisodes=(SELECT COUNT(*) FROM podcastEpisodes WHERE podcastId=?),updatedAt=? WHERE id=?`, podcastID, now, podcastID)
 	return err
 }
+
+// episodeAddedEvent is the payload of episode_added; Access scopes it to users
+// who can see the podcast item.
+type episodeAddedEvent struct {
+	item.EpisodeExpanded
+	LibraryItem item.Expanded `json:"libraryItem"`
+}
+
+func (e episodeAddedEvent) Access() item.Access { return e.LibraryItem.Access() }
 
 // trimOldest deletes the oldest episode (and its file) once the podcast has more
 // dated episodes than maxEpisodesToKeep, never the one just added

@@ -127,8 +127,8 @@ Baseline from `make oracle` (2026-11-20, pinned upstream TS v2.37.2 @
     nulls `sessions.lastRefreshToken*`; `PATCH /api/users/{id}` returns `404` on
     missing user ID before body decode.
 
-- [ ] **Remaining in Wave P3 (`internal/share`, `internal/list`,
-      `internal/mail`, `internal/notify`)**
+- [x] **Remaining in Wave P3 (`internal/share`, `internal/list`,
+      `internal/mail`, `internal/notify`)** *(closed in Wave P4 below)*
   - `internal/share`: fix `get-public-share-by-slug` / `get-public-share-init`
     `playbackSession.id` UUIDs and `get-feed-item-range`.
   - `internal/list`: unify `playlist.go` (662 LOC) + `collection.go` (521 LOC)

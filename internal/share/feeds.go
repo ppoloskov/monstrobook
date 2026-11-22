@@ -107,7 +107,7 @@ func (h *Handler) openFeed(w http.ResponseWriter, r *http.Request, kind entityKi
 	if err != nil {
 		return err
 	}
-	h.emit.ToAll("rss_feed_open", minified(feed))
+	h.emit.ToAdmins("rss_feed_open", minified(feed))
 	return httpx.JSON(w, r, struct {
 		Feed feedMinified `json:"feed"`
 	}{minified(feed)})
@@ -127,7 +127,7 @@ func (h *Handler) closeFeed(w http.ResponseWriter, r *http.Request) error {
 	if _, err := h.db.Exec(r.Context(), `DELETE FROM feeds WHERE id = ?`, id); err != nil { // feedEpisodes cascade
 		return fmt.Errorf("delete feed: %w", err)
 	}
-	h.emit.ToAll("rss_feed_closed", minified(feed))
+	h.emit.ToAdmins("rss_feed_closed", minified(feed))
 	return httpx.Status(w, http.StatusOK)
 }
 

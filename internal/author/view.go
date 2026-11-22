@@ -23,6 +23,10 @@ type View struct {
 	NumBooks    *int    `json:"numBooks,omitempty"`
 }
 
+// EventLibraryID scopes author_updated and author_removed broadcasts to users
+// who can access the author's library.
+func (v View) EventLibraryID() string { return v.LibraryID }
+
 // viewOf is the JSON of a row; numBooks may be nil.
 func viewOf(a db.Author, numBooks *int) View {
 	return View{ID: a.ID, ASIN: a.ASIN, Name: a.Name, Description: a.Description, ImagePath: a.ImagePath,

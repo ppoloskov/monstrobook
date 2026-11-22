@@ -22,6 +22,8 @@ rewrite (`git log 7051b3e5..HEAD`).
 
 - The admin check also requires an active user.
 - A stored permission flag that is not a boolean grants nothing.
+- Listing libraries (`GET /api/libraries`) requires `accessAllLibraries` when
+  `librariesAccessible` is empty (matching upstream v2.38.0).
 - OIDC claims are read strictly.
 - The OIDC user step is one transaction.
 
@@ -50,8 +52,8 @@ rewrite (`git log 7051b3e5..HEAD`).
 ## Playback
 
 - Local-sync timestamps are numbers or numeric strings; other types read as 0.
-- HLS playback now sends owner-user stream lifecycle events and incremental
-  segment progress. Nonzero seek resets remain globally broadcast.
+- HLS playback sends owner-user stream lifecycle events, incremental segment
+  progress, and owner-user `stream_reset` events on nonzero seeks.
 - Failed transcodes remove output and detach HLS instead of remaining silently
   available. Missing input files fail asynchronously after the play response.
 - Eligible copy failures retry AAC once; close and shutdown reap the process and
@@ -99,6 +101,13 @@ rewrite (`git log 7051b3e5..HEAD`).
 ## Realtime
 
 - Events are filtered on the typed principal and the typed views only.
+- `notifications_updated` (matching upstream v2.38.0), `metadata_embed_queue_update`,
+  `episode_download_queue_cleared`, `rss_feed_open`, and `rss_feed_closed` are
+  emitted to admins only.
+- `author_updated`, `author_removed`, `authors_num_books_updated`,
+  `series_updated`, `series_removed`, `item_removed`, and `episode_download_*`
+  are scoped to users with library access; `episode_added` is scoped by item
+  access (`CanAccessItem`).
 - Online-user events carry a small struct: no token, no permissions.
 - A revoked socket receives nothing.
 - Playlist announcements after a deletion go through one function that `list`

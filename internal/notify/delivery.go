@@ -75,7 +75,7 @@ func (h *Handler) deliver(ctx context.Context, eventName string, data map[string
 	if err != nil {
 		return err
 	}
-	h.emit.ToAll("notifications_updated", updated)
+	h.emit.ToAdmins("notifications_updated", updated)
 	return nil
 }
 

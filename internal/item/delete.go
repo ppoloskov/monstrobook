@@ -112,7 +112,7 @@ func (h *Handler) announceRemoval(ctx context.Context, rem Removal, files func(c
 	for _, ref := range rem.refs {
 		for _, feed := range rem.closedFeeds {
 			if db.Val(feed.EntityID) == ref.ID {
-				h.emit.ToAll("rss_feed_closed", feed)
+				h.emit.ToAdmins("rss_feed_closed", feed)
 			}
 		}
 		purgeCoverCache(h.deps.CoverCacheDir, ref.ID)

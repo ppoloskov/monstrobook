@@ -7,11 +7,15 @@ import (
 	"slices"
 )
 
-// removed is the payload of author_removed and series_removed.
+// removed is the payload of item_removed, author_removed, and series_removed.
 type removed struct {
 	ID        string `json:"id"`
 	LibraryID string `json:"libraryId"`
 }
+
+// EventLibraryID scopes item_removed, author_removed, and series_removed
+// broadcasts to users who can access the library.
+func (r removed) EventLibraryID() string { return r.LibraryID }
 
 // orphan is a parent row a sweep deleted.
 type orphan struct {
@@ -71,7 +75,7 @@ func (h *Handler) sweepSeries(ctx context.Context, ids []string) {
 			slog.Error("close feeds of removed series", "series", id, "error", err)
 		}
 		for _, feed := range closed {
-			h.emit.ToAll("rss_feed_closed", feed)
+			h.emit.ToAdmins("rss_feed_closed", feed)
 		}
 	}
 }

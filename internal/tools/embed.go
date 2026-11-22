@@ -103,7 +103,7 @@ func (h *Handler) next() {
 	j := h.queued[0]
 	h.queued = h.queued[1:]
 	h.mu.Unlock()
-	h.emit.ToAll("metadata_embed_queue_update", queueUpdate{j.itemID, false})
+	h.emit.ToAdmins("metadata_embed_queue_update", queueUpdate{j.itemID, false})
 	h.start(j, func() error { return h.runEmbed(j) })
 }
 

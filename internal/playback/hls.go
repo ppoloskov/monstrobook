@@ -524,7 +524,7 @@ func (h *Handler) hls(w http.ResponseWriter, r *http.Request) error {
 	if _, err := os.Stat(path); err != nil {
 		if seg, isSegment := segmentNumber(name); isSegment && ext == ".ts" {
 			if at := s.stream.checkSegment(seg); at > 0 {
-				h.emit.ToAll("stream_reset", streamReset{StartTime: at, StreamID: id})
+				h.emit.ToUser(s.UserID, "stream_reset", streamReset{StartTime: at, StreamID: id})
 			}
 		}
 		return httpx.NotFound()

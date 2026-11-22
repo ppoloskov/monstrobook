@@ -31,6 +31,10 @@ type seriesView struct {
 	LibraryID        string  `json:"libraryId"`
 }
 
+// EventLibraryID scopes series_updated broadcasts to users who can access the
+// series's library.
+func (s seriesView) EventLibraryID() string { return s.LibraryID }
+
 func newSeriesView(s db.Series, prefixes []string) seriesView {
 	v := seriesView{ID: s.ID, Name: s.Name, Description: s.Description, AddedAt: s.CreatedAt.Millis(), UpdatedAt: s.UpdatedAt.Millis(), LibraryID: db.Val(s.LibraryID)}
 	if s.Name != nil {

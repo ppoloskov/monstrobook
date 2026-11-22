@@ -75,9 +75,13 @@ make openapi     # run the oracle and emit docs/openapi.json
 - `testmachine/oracle/` — Twin-Server Differential Oracle, declarative flows
   (`flows/*.json`), route/socket manifests, and `cmd/abs-record` mobile capture
   proxy
-- `docs/` — behaviour changes ([docs/CHANGES.md](docs/CHANGES.md)), domain
-  surveys (`docs/survey/`), and generated OpenAPI spec (`docs/openapi.json` via
-  `make openapi`)
+- `docs/` — behaviour changes ([docs/CHANGES.md](docs/CHANGES.md)), release
+  checklist ([docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)),
+  performance test plan ([docs/PERF_TEST_PLAN.md](docs/PERF_TEST_PLAN.md)),
+  production resource telemetry
+  ([docs/resource-comparison-2026-11-21.md](docs/resource-comparison-2026-11-21.md)),
+  domain surveys (`docs/survey/`), and generated OpenAPI spec
+  (`docs/openapi.json` via `make openapi`)
 - `archive/` — historical pre-rewrite notes, reports, and task logs
 
 ## Documentation

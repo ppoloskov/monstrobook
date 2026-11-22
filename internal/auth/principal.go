@@ -54,12 +54,18 @@ func (p *Principal) CanAccessLibrary(libraryID string) bool {
 	return p != nil && (perms.AccessAllLibraries || slices.Contains(perms.LibrariesAccessible, libraryID))
 }
 
-// CanListLibrary is the filter of LibraryController.findAll: only a non-empty
-// librariesAccessible list restricts and accessAllLibraries is ignored, which
-// differs from CanAccessLibrary on purpose (upstream does the same).
+// CanListLibrary is the filter of LibraryController.findAll: a non-empty
+// librariesAccessible list restricts; otherwise accessAllLibraries is required
+// (upstream v2.38.0).
 func (p *Principal) CanListLibrary(libraryID string) bool {
+	if p == nil {
+		return false
+	}
 	perms := p.perms()
-	return p != nil && (len(perms.LibrariesAccessible) == 0 || slices.Contains(perms.LibrariesAccessible, libraryID))
+	if len(perms.LibrariesAccessible) > 0 {
+		return slices.Contains(perms.LibrariesAccessible, libraryID)
+	}
+	return perms.AccessAllLibraries
 }
 
 // CanAccessItem is User.checkCanAccessLibraryItem: the library rule plus

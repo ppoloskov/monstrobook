@@ -81,7 +81,7 @@ func TestLibraryRules(t *testing.T) {
 		{"all libraries", principal("user", true, db.Permissions{AccessAllLibraries: true}), true, true, true, true},
 		{"listed library", principal("user", true, db.Permissions{LibrariesAccessible: []string{"a"}}), true, true, false, false},
 		{"all libraries and a list: list wins in listing only", principal("user", true, db.Permissions{AccessAllLibraries: true, LibrariesAccessible: []string{"a"}}), true, true, true, false},
-		{"nothing", principal("user", true, db.Permissions{}), false, true, false, true},
+		{"nothing", principal("user", true, db.Permissions{}), false, false, false, false},
 		{"nil", nil, false, false, false, false},
 	} {
 		if tc.p.CanAccessLibrary("a") != tc.access || tc.p.CanListLibrary("a") != tc.list ||
