@@ -199,9 +199,16 @@ Baseline from `make oracle` (2026-11-20, pinned upstream TS v2.37.2 @
     timeout, `X-Forwarded-For` proxy trust + OIDC flow cap, `library-match-all`
     `defer TaskFinished`, `Scanner`/`tools`/`Hub` `WaitGroup` drain,
     `http.Server` `IdleTimeout`/`MaxHeaderBytes`).
-- [ ] **Gates 2–4 — First Public Release (`v0.1.0`)**: CI green, container
-      upgrade/rollback & SIGTERM soak, Web SPA E2E + real mobile app acceptance,
-      tag `v0.1.0` ([docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)).
+- [ ] **Gates 3–4 — First Public Release (`v0.1.0`)**: Docker host
+      `docker compose up` + real backup rollback, Web SPA E2E + real mobile app
+      acceptance, tag `v0.1.0` ([docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md);
+      Gate 2 CI + multi-arch image + OpenAPI closed at `7246e26c`).
+- [ ] **Post-`v0.1.0`: Cover Resize & Format Conversion via Go library**
+      (`internal/item/cover.go`, `internal/media/probe.go`): replace per-cover
+      `ffmpeg` subprocess forks with in-process `CGO_ENABLED=0` image
+      decode/resize/encode (JPEG/PNG via stdlib + `golang.org/x/image`, plus
+      pure-Go WebP encode or `ffmpeg` fallback), cutting cold cover latency and
+      removing the `libwebp` FFmpeg build requirement.
 
 ## Open decisions
 
