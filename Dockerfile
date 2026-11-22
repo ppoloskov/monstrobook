@@ -5,8 +5,9 @@
 # Same runtime contract as the stock image: PORT=80, /config, /metadata,
 # SOURCE=docker. Existing installs can switch images and keep their volumes.
 
-### STAGE 0: Official Audiobookshelf v2.37.2 web UI (no Node build needed) ###
-FROM ghcr.io/advplyr/audiobookshelf:2.37.2 AS upstream-webui
+### STAGE 0: Official Audiobookshelf web UI (default v2.37.2; override with WEBUI_IMAGE=...:v3) ###
+ARG WEBUI_IMAGE=ghcr.io/advplyr/audiobookshelf:2.37.2
+FROM ${WEBUI_IMAGE} AS upstream-webui
 
 ### STAGE 1: Cross-compile the Go server on the builder CPU (no QEMU) ###
 # Keep the Go version in step with go.mod.
