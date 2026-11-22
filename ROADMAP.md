@@ -209,6 +209,20 @@ Baseline from `make oracle` (2026-11-20, pinned upstream TS v2.37.2 @
       decode/resize/encode (JPEG/PNG via stdlib + `golang.org/x/image`, plus
       pure-Go WebP encode or `ffmpeg` fallback), cutting cold cover latency and
       removing the `libwebp` FFmpeg build requirement.
+- [ ] **Post-`v0.1.0`: Kubernetes Env-Var Configuration**
+      (`internal/config/`, `internal/settings/`): extend `Server.WithEnv` /
+      `Email` runtime overlay (without polluting `absdatabase.sqlite`) for
+      `OIDC_*`, `SMTP_*`, `SCANNER_DISABLE_WATCHER`, `ALLOWED_ORIGINS`,
+      `LOG_LEVEL`, `BACKUP_*`, `TRUSTED_PROXIES`, and headless `INIT_ROOT_*`
+      bootstrap.
+- [ ] **Post-`v0.1.0`: Organize / Rename Audiobooks on Disk**: template-driven
+      on-disk library organization (e.g. `Author/Series/Title`) with dry-run
+      preview, safe atomic file moves within library roots, and DB path/inode
+      reconciliation.
+- [ ] **Post-`v0.1.0`: Configurable M4B Transcode Source Backups**
+      (`internal/tools/encode.go`, `internal/config/`): allow enabling/disabling
+      source audio file backups during `encode-m4b` and configuring the backup
+      directory (currently hardcoded to `<metadata>/cache/items/<itemID>`).
 
 ## Open decisions
 
