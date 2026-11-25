@@ -3,11 +3,44 @@ package server
 import (
 	"io"
 	"io/fs"
+	"log/slog"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path"
 	"strings"
 )
+
+// clientProxyHandler forwards unmatched UI requests to an upstream web client
+// server (such as the v3 Next.js React client running on localhost).
+func clientProxyHandler(targetURL, basePath string) http.Handler {
+	target, err := url.Parse(targetURL)
+	if err != nil || target.Host == "" {
+		return http.NotFoundHandler()
+	}
+	base := strings.TrimRight(basePath, "/")
+	proxy := &httputil.ReverseProxy{
+		Rewrite: func(pr *httputil.ProxyRequest) {
+			pr.SetURL(target)
+			pr.Out.Host = pr.In.Host
+			pr.SetXForwarded()
+			if base != "" {
+				p := pr.Out.URL.Path
+				if p == "/" {
+					p = ""
+				}
+				pr.Out.URL.Path = base + p
+				pr.Out.URL.RawPath = ""
+			}
+		},
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			slog.Warn("web client proxy error", "path", r.URL.Path, "error", err)
+			http.Error(w, http.StatusText(http.StatusBadGateway), http.StatusBadGateway)
+		},
+	}
+	return proxy
+}
 
 // clientHandler serves the web client from root. The client is a Nuxt SPA
 // (ssr false, target static) whose router renders its own 404 page, so any

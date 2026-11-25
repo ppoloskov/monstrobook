@@ -10,7 +10,7 @@ on:
     tags:
       - 'v*'
     paths:
-      - 'Dockerfile'
+      - 'Dockerfile.v3'
       - 'go.mod'
       - 'go.sum'
       - 'cmd/**'
@@ -19,7 +19,7 @@ on:
       - '.github/workflows/go-backend.yml'
   pull_request:
     paths:
-      - 'Dockerfile'
+      - 'Dockerfile.v3'
       - 'go.mod'
       - 'go.sum'
       - 'cmd/**'
@@ -83,10 +83,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile
+          file: Dockerfile.v3
           build-args: |
             VCS_REF=${{ github.sha }}
-            WEBUI_IMAGE=ghcr.io/advplyr/audiobookshelf:v3
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

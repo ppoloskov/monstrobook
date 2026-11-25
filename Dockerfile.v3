@@ -1,0 +1,110 @@
+# syntax=docker/dockerfile:1
+#
+# Monstrobook (v3 React UI): drop-in Go server paired with the experimental
+# upstream Next.js React web client (ghcr.io/advplyr/audiobookshelf:v3).
+# Runs Next.js locally on 127.0.0.1:3000 and proxies unmatched UI routes from
+# Monstrobook so the runtime contract stays identical: PORT=80, /config,
+# /metadata, SOURCE=docker.
+
+### STAGE 0: Official Audiobookshelf v3 Next.js React client ###
+ARG V3_WEBUI_IMAGE=ghcr.io/advplyr/audiobookshelf:v3
+FROM ${V3_WEBUI_IMAGE} AS upstream-webui
+
+### STAGE 1: Cross-compile the Go server on the builder CPU (no QEMU) ###
+# Keep the Go version in step with go.mod.
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build-server
+
+ARG TARGETARCH
+# Git commit shown in the startup log ("Monstrobook v... (build <sha>)").
+ARG VCS_REF=dev
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY cmd ./cmd
+COPY internal ./internal
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH \
+  go build -trimpath -ldflags "-s -w -X main.buildCommit=${VCS_REF}" -o /out/monstrobook ./cmd/monstrobook
+
+### STAGE 2: Runtime image (Node 24 for Next.js + Monstrobook Go server) ###
+FROM node:24-alpine
+
+LABEL org.opencontainers.image.title="Monstrobook (v3 React UI)" \
+  org.opencontainers.image.description="Drop-in Go server paired with the upstream Audiobookshelf v3 Next.js React client" \
+  org.opencontainers.image.source="https://github.com/ppoloskov/audiobookshelf-go" \
+  org.opencontainers.image.licenses="GPL-3.0"
+
+RUN apk add --no-cache --update \
+  tzdata \
+  ffmpeg \
+  tini
+
+WORKDIR /app
+
+# Copy compiled Next.js React client from upstream v3 image.
+COPY --from=upstream-webui /app/client-react /app/client-react
+# Allow non-root containers (e.g. runAsUser: 1001) to rewrite .next basePath
+# and write Next.js image cache at startup.
+RUN chmod -R a+rwX /app/client-react/.next
+
+COPY --from=build-server /out/monstrobook /app/monstrobook
+
+RUN cat <<'EOF' > /app/entrypoint-v3.sh
+#!/bin/sh
+set -eu
+
+NEXT_PORT="${NEXT_PORT:-3000}"
+export REACT_CLIENT_PATH="/app/client-react"
+export ABS_GO_CLIENT_PROXY_URL="http://127.0.0.1:${NEXT_PORT}"
+
+(
+  cd /app/client-react
+  exec env PORT="${NEXT_PORT}" HOSTNAME="127.0.0.1" ./node_modules/.bin/next start
+) &
+NEXT_PID=$!
+
+/app/monstrobook "$@" &
+GO_PID=$!
+
+term_handler() {
+  kill -TERM "$GO_PID" "$NEXT_PID" 2>/dev/null || true
+  wait "$GO_PID" "$NEXT_PID" 2>/dev/null || true
+  exit 0
+}
+trap term_handler TERM INT
+
+# Exit if either process dies so the container supervisor can restart it.
+while kill -0 "$GO_PID" 2>/dev/null && kill -0 "$NEXT_PID" 2>/dev/null; do
+  sleep 1
+done
+
+STATUS=0
+if ! kill -0 "$GO_PID" 2>/dev/null; then
+  wait "$GO_PID" || STATUS=$?
+  kill -TERM "$NEXT_PID" 2>/dev/null || true
+  wait "$NEXT_PID" 2>/dev/null || true
+else
+  wait "$NEXT_PID" || STATUS=$?
+  kill -TERM "$GO_PID" 2>/dev/null || true
+  wait "$GO_PID" 2>/dev/null || true
+fi
+exit "$STATUS"
+EOF
+RUN chmod +x /app/entrypoint-v3.sh
+
+EXPOSE 80
+
+ENV PORT=80
+ENV NODE_ENV=production
+ENV CONFIG_PATH="/config"
+ENV METADATA_PATH="/metadata"
+ENV SOURCE="docker"
+ENV REACT_CLIENT_PATH="/app/client-react"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/healthcheck" || exit 1
+
+ENTRYPOINT ["tini", "--"]
+CMD ["/app/entrypoint-v3.sh"]

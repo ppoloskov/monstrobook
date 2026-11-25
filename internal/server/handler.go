@@ -40,7 +40,11 @@ func (rt *Runtime) newHandler(routes *http.ServeMux, allowAllCORS bool) http.Han
 	// The upstream leaves item covers and author images readable without a token.
 	public.Handle("GET /api/items/{id}/cover", routes)
 	public.Handle("GET /api/authors/{id}/image", routes)
-	public.Handle("/", matching(routes, clientHandler(rt.cfg.ClientPath)))
+	ui := clientHandler(rt.cfg.ClientPath)
+	if rt.cfg.ClientProxyURL != "" {
+		ui = clientProxyHandler(rt.cfg.ClientProxyURL, rt.cfg.ClientProxyBasePath)
+	}
+	public.Handle("/", matching(routes, ui))
 
 	return chain(public, rt.middlewares(allowAllCORS)...)
 }

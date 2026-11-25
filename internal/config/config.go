@@ -5,6 +5,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,15 +14,17 @@ import (
 )
 
 type Config struct {
-	Port           int
-	Host           string
-	ConfigPath     string
-	MetadataPath   string
-	RouterBasePath string
-	ClientPath     string
-	Source         string
-	JWTSecret      string
-	Auth           Auth
+	Port                int
+	Host                string
+	ConfigPath          string
+	MetadataPath        string
+	RouterBasePath      string
+	ClientPath          string
+	ClientProxyURL      string
+	ClientProxyBasePath string
+	Source              string
+	JWTSecret           string
+	Auth                Auth
 	// MaxFailedEpisodeChecks is MAX_FAILED_EPISODE_CHECKS (Server.js:119):
 	// failed episode checks before a podcast's auto-download is switched off;
 	// 0 never switches it off.
@@ -125,11 +128,22 @@ func LoadArgs(args []string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("resolve METADATA_PATH: %w", err)
 	}
-	basePath, ok := os.LookupEnv("ROUTER_BASE_PATH")
-	if !ok {
+	basePath, basePathSet := os.LookupEnv("ROUTER_BASE_PATH")
+	if !basePathSet {
 		basePath = "/audiobookshelf"
 	}
 	base := normalizeBasePath(basePath)
+	clientProxyBase := ""
+	if basePathSet {
+		clientProxyBase = base
+	}
+	clientProxyURL := strings.TrimSpace(os.Getenv("ABS_GO_CLIENT_PROXY_URL"))
+	if clientProxyURL != "" {
+		u, parseErr := url.Parse(clientProxyURL)
+		if parseErr != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return Config{}, fmt.Errorf("invalid ABS_GO_CLIENT_PROXY_URL %q", clientProxyURL)
+		}
+	}
 	clientPath, clientPathSet := os.LookupEnv("ABS_GO_CLIENT_PATH")
 	if !clientPathSet || strings.TrimSpace(clientPath) == "" {
 		clientPath = filepath.Join(cwd, "client", "dist")
@@ -144,7 +158,9 @@ func LoadArgs(args []string) (Config, error) {
 	return Config{
 		Port: port, Host: strings.TrimSpace(host),
 		ConfigPath: configPath, MetadataPath: metadataPath,
-		RouterBasePath: base, ClientPath: clientPath, Source: source,
+		RouterBasePath: base, ClientPath: clientPath,
+		ClientProxyURL: clientProxyURL, ClientProxyBasePath: clientProxyBase,
+		Source:    source,
 		JWTSecret: os.Getenv("JWT_SECRET_KEY"), Auth: authFromEnv(),
 		MaxFailedEpisodeChecks: envInt("MAX_FAILED_EPISODE_CHECKS", 24, true),
 	}, nil
